@@ -9,7 +9,7 @@
   "keywords": [],
   "author": "jordan-ops",
   "license": "ISC",
-  "type": "module",
+  "type": "commonjs",
   "dependencies": {
     "node-telegram-bot-api": "^0.67.0",
     "openclaw": "^2026.1.30"
