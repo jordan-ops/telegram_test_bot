@@ -1,34 +1,31 @@
-// bot.js
 const TelegramBot = require('node-telegram-bot-api');
 
-// Replace this with your BotFather token
-const token = 'YOUR_BOT_TOKEN_HERE';
+const token = process.env.BOT_TOKEN;
+const bot = new TelegramBot(token);
 
-// Create bot with polling
-const bot = new TelegramBot(token, { polling: true });
+const port = process.env.PORT || 3000; // Railway provides PORT env variable
+const url = process.env.RAILWAY_STATIC_URL || 'https://example.com'; // optional fallback
 
-console.log('Telegram bot is running...');
+// Use webhook instead of polling
+bot.setWebHook(`${url}/${token}`);
 
-// Listen for any text message
-bot.on('message', (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text;
+// Simple endpoint using Express to receive updates
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
 
-    console.log(`Received message from ${chatId}: ${text}`);
-
-    // Example: simple reply
-    bot.sendMessage(chatId, `You said: ${text}`);
+app.use(bodyParser.json());
+app.post(`/${token}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
 });
 
-// Listen for commands (like /start)
+// Test command
 bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 'Welcome! I am your CommonJS Telegram bot.');
+  bot.sendMessage(msg.chat.id, 'Bot is alive!');
 });
 
-// You can add more command handlers here
-bot.onText(/\/help/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 'Available commands:\n/start - Start bot\n/help - Show this message');
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
 
