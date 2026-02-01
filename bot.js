@@ -1,16 +1,23 @@
 const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
-const bodyParser = require('body-parser');
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
-const token = process.env.BOT_TOKEN; // set this in Railway variables
+const token = process.env.BOT_TOKEN;
 const port = process.env.PORT || 3000;
-const url = process.env.RAILWAY_STATIC_URL; // Railway's public URL
+const domain = process.env.RAILWAY_PUBLIC_DOMAIN;
 
-const bot = new TelegramBot(token);
-bot.setWebHook(`${url}/${token}`); // Telegram will send updates here
+if (!token || !domain) {
+  console.error("Missing BOT_TOKEN or RAILWAY_PUBLIC_DOMAIN");
+  process.exit(1);
+}
+
+const bot = new TelegramBot(token, { webHook: true });
+
+// Correct webhook URL
+const webhookUrl = `https://${domain}/${token}`;
+bot.setWebHook(webhookUrl);
 
 app.post(`/${token}`, (req, res) => {
   bot.processUpdate(req.body);
@@ -18,10 +25,10 @@ app.post(`/${token}`, (req, res) => {
 });
 
 bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, 'Bot is alive!');
+  bot.sendMessage(msg.chat.id, '✅ Bot is alive!');
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port ${port}`);
 });
 
